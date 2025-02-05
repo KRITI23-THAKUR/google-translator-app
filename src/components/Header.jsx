@@ -1,4 +1,4 @@
-import { Avatar, Button, Menu, MenuItem } from "@mui/material";
+import { Avatar, Button, Menu, MenuItem, Box, Typography } from "@mui/material";
 import Logout from "@mui/icons-material/Logout";
 import React, { useState } from "react";
 import { signOut } from "firebase/auth";
@@ -9,13 +9,13 @@ import { useNavigate } from "react-router-dom";
 function Header({ user }) {
   const nav = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl); // this is done so that whenever an anchor element is set, it will open the menu
+  const open = Boolean(anchorEl);
 
   const toggleMenu = (e) => {
-    setAnchorEl(e.target);
+    setAnchorEl(e.currentTarget);
   };
 
-  const handleClose = (e) => {
+  const handleClose = () => {
     setAnchorEl(null);
   };
 
@@ -23,45 +23,87 @@ function Header({ user }) {
     await signOut(auth);
   };
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     nav("/login");
   };
-  console.log(user);
 
   return (
-    <div>
-      <h1>Translator</h1>
-      <Button onClick={toggleMenu}>
-        {user.photoURL ? (
-          <Avatar alt={user.displayName} src={user.photoURL} />
-        ) : (
-          <Avatar />
-        )}
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "10px 20px",
+        background: "#F1F1F1",
+        borderRadius: "12px",
+        boxShadow: "4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5)",
+        transition: "all 0.3s ease",
+        height: "50px",
+        ":hover": {
+          boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.2), -6px -6px 12px rgba(255, 255, 255, 0.7)",
+        },
+      }}
+    >
+      {/* Logo / Title */}
+      <Typography variant="h6" sx={{ fontWeight: "bold", color: "#333", fontFamily: "'Roboto', sans-serif" }}>
+        Translator
+      </Typography>
+
+      {/* Profile Avatar & Menu */}
+      <Button onClick={toggleMenu} sx={{ boxShadow: "none" }}>
+        <Avatar
+          alt={user?.displayName}
+          src={user?.photoURL || ""} // If the photoURL exists (Google profile), use it as the image source
+          sx={{
+            width: 40,
+            height: 40,
+            background: user?.photoURL ? "none" : "linear-gradient(45deg, #FF8E53, #FF6D00, #FF4081)", // Apply gradient only if no photoURL
+            boxShadow: "4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5)",
+            transition: "all 0.3s ease",
+            ":hover": {
+              boxShadow: "6px 6px 10px rgba(0, 0, 0, 0.2), -6px -6px 10px rgba(255, 255, 255, 0.7)",
+            },
+          }}
+        >
+          {/* If no photoURL, display initial letter */}
+          {!user?.photoURL && (
+            <Typography sx={{ color: "#fff", fontSize: "16px", fontWeight: "bold" }}>
+              {user?.displayName ? user.displayName.charAt(0).toUpperCase() : "G"}
+            </Typography>
+          )}
+        </Avatar>
       </Button>
 
+      {/* Dropdown Menu */}
       <Menu
         id="profile-options"
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        onClick={handleClose}
+        sx={{
+          "& .MuiPaper-root": {
+            background: "#F1F1F1",
+            borderRadius: "12px",
+            boxShadow: "4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5)",
+          },
+        }}
       >
-        <MenuItem>{user.displayName}</MenuItem>
-        {user.email ? <MenuItem>{user.email}</MenuItem> : null}
-        {user.email ? (
-          <MenuItem onClick={handleLogout}>
-            <Logout fontSize="small" />
-            Logout
+        <MenuItem sx={{ fontWeight: "bold" }}>{user?.displayName}</MenuItem>
+        {user?.email && <MenuItem>{user.email}</MenuItem>}
+
+        {user?.email && (
+          <MenuItem onClick={handleLogout} sx={{ color: "#D32F2F", fontWeight: "bold" }}>
+            <Logout fontSize="small" sx={{ marginRight: 1 }} /> Logout
           </MenuItem>
-        ) : null}
-        {/* for guest users */}
-        {user.displayName == "Guest" ? (
-          <MenuItem onClick={handleLogin}>
-            <Login fontSize="small" /> Sign In
+        )}
+
+        {user?.displayName === "Guest" && (
+          <MenuItem onClick={handleLogin} sx={{ color: "#1976D2", fontWeight: "bold" }}>
+            <Login fontSize="small" sx={{ marginRight: 1 }} /> Sign In
           </MenuItem>
-        ) : null}
+        )}
       </Menu>
-    </div>
+    </Box>
   );
 }
 

@@ -1,11 +1,9 @@
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-} from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { auth, provider } from "../config/firebaseconfig";
+import { Box, Button, InputAdornment, TextField, Typography } from "@mui/material";
+import GoogleIcon from "@mui/icons-material/Google";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -34,30 +32,117 @@ function Login() {
       .catch((err) => console.error(err));
   };
 
-  // uiconfig = {
-  //   signInOptions: [
-  //     firebaseui.auth.GoogleAuthProvider.PROVIDER_ID,
-  //     firebaseui.auth.EmailAuthProvider.PROVIDER_ID,
-  //   ],
-  // };
   return (
-    <div>
-      <input
-        type="email"
-        placeholder="Enter email..."
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Enter password..."
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button onClick={handleLogin}>Sign In</button>
-      <button onClick={handleGoogle}>Sign In with Google</button>
-      <p>
-        Don't have an account? <Link to="/signup">Sign Up</Link>
-      </p>
-    </div>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        backgroundColor: "#f0f0f3",
+        padding: "20px",
+      }}
+    >
+      <Box
+        sx={{
+          backgroundColor: "#e0e5ec",
+          borderRadius: "20px",
+          padding: "30px",
+          boxShadow: "10px 10px 20px rgba(0, 0, 0, 0.1), -10px -10px 20px rgba(255, 255, 255, 0.7)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+          width: "400px",
+          maxWidth: "100%",
+        }}
+      >
+        <Typography variant="h4" align="center" sx={{ fontWeight: "bold", color: "#333" }}>
+          Login
+        </Typography>
+
+        {/* Email Input */}
+        <TextField
+          label="Email"
+          variant="outlined"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          sx={{
+            backgroundColor: "#e0e5ec",
+            borderRadius: "12px",
+            padding: "10px",
+            boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.1), -4px -4px 6px rgba(255, 255, 255, 0.7)",
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "12px",
+            },
+            "& .MuiInputLabel-root": {
+              color: "#333",
+            },
+          }}
+        />
+
+        {/* Password Input */}
+        <TextField
+          label="Password"
+          variant="outlined"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          sx={{
+            backgroundColor: "#e0e5ec",
+            borderRadius: "12px",
+            padding: "10px",
+            boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.1), -4px -4px 6px rgba(255, 255, 255, 0.7)",
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "12px",
+            },
+            "& .MuiInputLabel-root": {
+              color: "#333",
+            },
+          }}
+        />
+
+        {/* Sign In Button */}
+        <Button
+          onClick={handleLogin}
+          variant="contained"
+          sx={{
+            backgroundColor: "#6c63ff",
+            color: "#fff",
+            borderRadius: "12px",
+            boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.1), -4px -4px 6px rgba(255, 255, 255, 0.7)",
+            "&:hover": {
+              backgroundColor: "#5a53e0",
+            },
+          }}
+        >
+          Sign In
+        </Button>
+
+        {/* Sign In with Google */}
+        <Button
+          onClick={handleGoogle}
+          variant="outlined"
+          sx={{
+            borderRadius: "12px",
+            boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.1), -4px -4px 6px rgba(255, 255, 255, 0.7)",
+            color: "#333",
+            borderColor: "#e0e5ec",
+            "&:hover": {
+              borderColor: "#d0d5e0",
+              backgroundColor: "#f0f4fc",
+            },
+          }}
+          startIcon={<GoogleIcon />}
+        >
+          Sign In with Google
+        </Button>
+
+        {/* Sign Up Redirect */}
+        <Typography align="center">
+          Don't have an account? <Link to="/signup">Sign Up</Link>
+        </Typography>
+      </Box>
+    </Box>
   );
 }
 
