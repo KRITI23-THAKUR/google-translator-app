@@ -1,12 +1,12 @@
 import { Avatar, Button, Menu, MenuItem, Box, Typography } from "@mui/material";
 import Logout from "@mui/icons-material/Logout";
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../config/firebaseconfig";
 import { Login } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
-function Header({ user }) {
+const Header = memo(({ user }) => {
   const nav = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -36,16 +36,25 @@ function Header({ user }) {
         padding: "10px 20px",
         background: "#F1F1F1",
         borderRadius: "12px",
-        boxShadow: "4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5)",
+        boxShadow:
+          "4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5)",
         transition: "all 0.3s ease",
         height: "50px",
         ":hover": {
-          boxShadow: "6px 6px 12px rgba(0, 0, 0, 0.2), -6px -6px 12px rgba(255, 255, 255, 0.7)",
+          boxShadow:
+            "6px 6px 12px rgba(0, 0, 0, 0.2), -6px -6px 12px rgba(255, 255, 255, 0.7)",
         },
       }}
     >
       {/* Logo / Title */}
-      <Typography variant="h6" sx={{ fontWeight: "bold", color: "#333", fontFamily: "'Roboto', sans-serif" }}>
+      <Typography
+        variant="h6"
+        sx={{
+          fontWeight: "bold",
+          color: "#333",
+          fontFamily: "'Roboto', sans-serif",
+        }}
+      >
         Translator
       </Typography>
 
@@ -57,18 +66,26 @@ function Header({ user }) {
           sx={{
             width: 40,
             height: 40,
-            background: user?.photoURL ? "none" : "linear-gradient(45deg, #FF8E53, #FF6D00, #FF4081)", // Apply gradient only if no photoURL
-            boxShadow: "4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5)",
+            background: user?.photoURL
+              ? "none"
+              : "linear-gradient(45deg, #FF8E53, #FF6D00, #FF4081)", // Apply gradient only if no photoURL
+            boxShadow:
+              "4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5)",
             transition: "all 0.3s ease",
             ":hover": {
-              boxShadow: "6px 6px 10px rgba(0, 0, 0, 0.2), -6px -6px 10px rgba(255, 255, 255, 0.7)",
+              boxShadow:
+                "6px 6px 10px rgba(0, 0, 0, 0.2), -6px -6px 10px rgba(255, 255, 255, 0.7)",
             },
           }}
         >
           {/* If no photoURL, display initial letter */}
           {!user?.photoURL && (
-            <Typography sx={{ color: "#fff", fontSize: "16px", fontWeight: "bold" }}>
-              {user?.displayName ? user.displayName.charAt(0).toUpperCase() : "G"}
+            <Typography
+              sx={{ color: "#fff", fontSize: "16px", fontWeight: "bold" }}
+            >
+              {user?.displayName
+                ? user.displayName.charAt(0).toUpperCase()
+                : "G"}
             </Typography>
           )}
         </Avatar>
@@ -84,7 +101,8 @@ function Header({ user }) {
           "& .MuiPaper-root": {
             background: "#F1F1F1",
             borderRadius: "12px",
-            boxShadow: "4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5)",
+            boxShadow:
+              "4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.5)",
           },
         }}
       >
@@ -92,19 +110,25 @@ function Header({ user }) {
         {user?.email && <MenuItem>{user.email}</MenuItem>}
 
         {user?.email && (
-          <MenuItem onClick={handleLogout} sx={{ color: "#D32F2F", fontWeight: "bold" }}>
+          <MenuItem
+            onClick={handleLogout}
+            sx={{ color: "#D32F2F", fontWeight: "bold" }}
+          >
             <Logout fontSize="small" sx={{ marginRight: 1 }} /> Logout
           </MenuItem>
         )}
 
         {user?.displayName === "Guest" && (
-          <MenuItem onClick={handleLogin} sx={{ color: "#1976D2", fontWeight: "bold" }}>
+          <MenuItem
+            onClick={handleLogin}
+            sx={{ color: "#1976D2", fontWeight: "bold" }}
+          >
             <Login fontSize="small" sx={{ marginRight: 1 }} /> Sign In
           </MenuItem>
         )}
       </Menu>
     </Box>
   );
-}
+});
 
 export default Header;
