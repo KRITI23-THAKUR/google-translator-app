@@ -1,10 +1,4 @@
-import {
-  Box,
-  MenuItem,
-  Select,
-  TextareaAutosize,
-  TextField,
-} from "@mui/material";
+import { Box, MenuItem, Select, TextareaAutosize } from "@mui/material";
 import { useState } from "react";
 
 function InputBox({
@@ -15,6 +9,7 @@ function InputBox({
   setInput,
   output = "",
   detectLang,
+  ...props
 }) {
   // to send the selected language code back, we need a setter for the selected language from the parent component
 
@@ -48,6 +43,7 @@ function InputBox({
             placeholder={"Enter Input text here..."}
             variant="outlined"
             onChange={(e) => setInput(e.target.value)}
+            {...props}
           />
         ) : (
           <TextareaAutosize
@@ -56,6 +52,7 @@ function InputBox({
             variant="outlined"
             disabled
             value={output}
+            {...props}
           />
         )}
       </Box>
