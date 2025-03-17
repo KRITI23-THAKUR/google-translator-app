@@ -1,15 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import MicNoneOutlinedIcon from "@mui/icons-material/MicNoneOutlined";
 import StopOutlinedIcon from "@mui/icons-material/StopOutlined";
 import { Button } from "@mui/material";
 
-function Recorder(uploadAudio) {
-  const [permission, setPermission] = setState(false);
-  const [stream, setStream] = setState(null);
-  const [audioChunks, setAudioChunks] = setState([]);
-  const [recording, setRecording] = setState(false);
-
-  let mediaRecorder;
+function Recorder({ uploadAudio }) {
+  const [permission, setPermission] = useState(false);
+  const [stream, setStream] = useState(null);
+  const [audioChunks, setAudioChunks] = useState([]);
+  const [recording, setRecording] = useState(false);
+  const mediaRecorderRef = useRef(null);
 
   useEffect(() => {
     getAudioPermission();
@@ -28,32 +27,27 @@ function Recorder(uploadAudio) {
   };
 
   const startRecording = () => {
-    if (permission) {
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.start();
+    if (permission && stream) {
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      mediaRecorderRef.current.start();
 
-      mediaRecorder.ondataavailable = (e) => {
-        setAudioChunks([...audioChunks, e.data]);
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        setAudioChunks((prevChunks) => [...prevChunks, e.data]);
       };
 
       setRecording(true);
-    } else getAudioPermission();
+    } else {
+      getAudioPermission();
+    }
   };
 
   const stopRecording = () => {
-    if (mediaRecorder.state === "recording") {
-      mediaRecorder.stop();
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+      mediaRecorderRef.current.stop();
 
-      mediaRecorder.onstop = () => {
+      mediaRecorderRef.current.onstop = () => {
         const audioToBlob = new Blob(audioChunks, { type: "audio/webm" });
-
-        // now since we need access of the output transcription in the main file
-        // to be able to put it into the input box
-        // hence, we'll called an uploader function from the main file
-        // and pass the audioToBlob as an argument to it
-
         uploadAudio(audioToBlob);
-
         setAudioChunks([]);
         setRecording(false);
       };
