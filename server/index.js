@@ -6,7 +6,7 @@ import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 
 import { connectDB } from "./config/db.js"; // ✅ MongoDB connection
-import { auth, provider } from "./config/firebaseconfig.js"; // ✅ Firebase authentication
+//import { auth, provider } from "./config/firebaseconfig.js"; // ✅ Firebase authentication
 
 // Import Models
 import User from "./models/User.js";
@@ -17,11 +17,17 @@ dotenv.config();
 connectDB(); // ✅ Connect to MongoDB Atlas
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 5000;
 
+// ✅ Ensure environment variables are set
 const translator_endpoint = process.env.AZURE_TRANSLATOR_ENDPOINT;
 const translator_api_key = process.env.AZURE_TRANSLATOR_API_KEY;
 const translator_region = process.env.AZURE_TRANSLATOR_REGION;
+
+if (!translator_endpoint || !translator_api_key || !translator_region) {
+  console.error("❌ Missing Azure Translator API credentials. Check .env file.");
+  process.exit(1);
+}
 
 app.use(express.json()); // ✅ Parse JSON request bodies
 app.use(cors());
@@ -49,29 +55,49 @@ app.post("/auth/google", async (req, res) => {
   }
 });
 
-app.use("/transcribeAudio", express.raw({ type: "audio/webm", limit: "10mb" })); // ✅ Handle audio blob files
+
 
 // ✅ Translation Route (Azure Translator API)
+
+
 app.post("/translate", async (req, res) => {
   try {
     const { Text, FromLang, TargetLang, userId } = req.body;
+
+    if (!Text || !TargetLang) {
+      return res.status(400).json({ error: "Text and TargetLang are required" });
+    }
+
+    // ✅ Validate and Convert userId
+    let userObjectId = null;
+    if (userId) {
+      if (mongoose.Types.ObjectId.isValid(userId)) {
+        userObjectId = new mongoose.Types.ObjectId(userId);
+      } else {
+        return res.status(400).json({ error: "Invalid userId format. Must be a valid ObjectId." });
+      }
+    }
+
     const from = FromLang === "auto" ? "" : `&from=${FromLang}`;
-    const url = `${translator_endpoint}translate?api-version=3.0${from}&to=${TargetLang}`;
+    const url = `${translator_endpoint}/translate?api-version=3.0${from}&to=${TargetLang}`;
 
     const response = await axios.post(url, [{ Text }], {
       headers: {
         "Content-Type": "application/json",
         "Ocp-Apim-Subscription-Key": translator_api_key,
         "Ocp-Apim-Subscription-Region": translator_region,
-        "X-ClientTraceId": uuidv4().toString(),
       },
     });
 
+    if (!response.data || !response.data[0]?.translations) {
+      throw new Error("Invalid response from Azure Translator API");
+    }
+
     const translatedText = response.data[0].translations[0].text;
 
-    // ✅ Save translation to MongoDB
+    // ✅ Save translation in MongoDB
     const newTranslation = new Translation({
-      userId: userId || null,
+      userId: userObjectId, // ✅ Ensuring it's an ObjectId
       text: Text,
       translatedText,
       sourceLanguage: FromLang,
@@ -80,16 +106,25 @@ app.post("/translate", async (req, res) => {
 
     await newTranslation.save();
 
-    res.json({ originalText: Text, translatedText, source: FromLang, target: TargetLang });
+    res.json({
+      originalText: Text,
+      translatedText,
+      source: FromLang === "auto" ? response.data[0].detectedLanguage?.language || "unknown" : FromLang,
+      target: TargetLang,
+    });
   } catch (err) {
-    res.status(500).json({ ServerError: err.message });
+    console.error("❌ Translation API error:", err.message);
+    res.status(500).json({ error: "Translation failed", details: err.message });
   }
 });
+
 
 // ✅ Fetch Translation History for a User
 app.get("/translations/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
+    if (!userId) return res.status(400).json({ error: "User ID is required" });
+
     const translations = await Translation.find({ userId });
     res.json(translations);
   } catch (err) {
@@ -111,6 +146,7 @@ app.get("/languages", async (req, res) => {
 app.post("/languages", async (req, res) => {
   try {
     const { code, name } = req.body;
+    if (!code || !name) return res.status(400).json({ error: "Code and name are required" });
 
     // Check if language already exists
     let existingLanguage = await Language.findOne({ code });
@@ -127,10 +163,12 @@ app.post("/languages", async (req, res) => {
   }
 });
 
+// ✅ Handle Audio Transcription (To be implemented later)
 app.post("/transcribe", (req, res) => {
   res.send("Transcription endpoint not implemented yet.");
 });
 
+// ✅ Start the Server
 app.listen(port, () => {
   console.log(`✅ Server is running on port ${port}`);
 });

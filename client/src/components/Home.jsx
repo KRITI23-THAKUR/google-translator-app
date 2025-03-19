@@ -38,16 +38,38 @@ function Home() {
       console.error("Failed to copy:", err);
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (input.trim()) {
-      // const res = await translateText(input, toLang, fromLang);
-      // setOutput(res.translations[0].text);
-      // if (fromLang == "auto")
-      //   setDetectedLang(res.detectedLanguage.language.split("-")[0]);
+    if (!input.trim()) return;
+  
+    try {
+      const response = await fetch("http://localhost:5000/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          Text: input,
+          FromLang: fromLang,
+          TargetLang: toLang,
+          userId: user._id || null, // ✅ Use MongoDB ObjectId instead of email
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        setOutput(data.translatedText);
+        if (fromLang === "auto") {
+          setDetectedLang(data.source);
+        }
+      } else {
+        console.error("Translation error:", data);
+      }
+    } catch (error) {
+      console.error("Translation request failed:", error);
     }
   };
+  
+  
 
   const uploadAudio = (blob) => {
     // const formData = new FormData();
